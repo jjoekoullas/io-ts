@@ -2,6 +2,14 @@ import * as t from '../src/index'
 import { assertSuccess, assertFailure, assertStrictEqual, NumberFromString } from './helpers'
 import * as assert from 'assert'
 
+export const DummyStrictType = new t.StrictType<{}, {}, {}, unknown>(
+  'DummyStrictType',
+  (_): _ is {} => true,
+  (u, c) => t.failure(u, c),
+  t.identity,
+  {}
+)
+
 describe('strict', () => {
   describe('name', () => {
     it('should assign a default name', () => {
@@ -73,13 +81,6 @@ describe('strict', () => {
   })
 
   it('should export a StrictType class', () => {
-    const T = new t.StrictType<{}, {}, {}, unknown>(
-      'name',
-      (_): _ is {} => true,
-      (u, c) => t.failure(u, c),
-      t.identity,
-      {}
-    )
-    assert.strictEqual(T.name, 'name')
+    assert.strictEqual(DummyStrictType.name, 'DummyStrictType')
   })
 })

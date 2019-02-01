@@ -2,6 +2,8 @@ import * as assert from 'assert'
 import { right } from 'fp-ts/lib/Either'
 import * as t from '../src/index'
 import { PathReporter } from '../src/PathReporter'
+import { toDecodeError } from '../src/toDecodeError'
+import { toErrors } from '../src/toErrors'
 
 export function assertStrictEqual<T>(result: t.Validation<T>, expected: any): void {
   if (result.isRight()) {
@@ -35,6 +37,11 @@ export function assertFailure(codec: t.Any, value: unknown, errors: Array<string
   const result = codec.decode(value)
   if (result.isLeft()) {
     assert.deepStrictEqual(PathReporter.report(result), errors)
+    // test roundtrip
+    assert.deepStrictEqual(
+      codec.decode(value).mapLeft(errors => toErrors(toDecodeError(errors), codec)),
+      codec.decode(value)
+    )
   } else {
     throw new Error(`${result} is not a left`)
   }
