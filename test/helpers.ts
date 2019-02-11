@@ -4,6 +4,7 @@ import * as t from '../src/index'
 import { PathReporter } from '../src/PathReporter'
 import { toDecodeError } from '../src/toDecodeError'
 import { toErrors } from '../src/toErrors'
+// import { failure } from '../src/DecodeErrorReporter'
 
 export function assertStrictEqual<T>(result: t.Validation<T>, expected: any): void {
   if (result.isRight()) {
@@ -33,15 +34,16 @@ export function assertStrictSuccess<T>(result: t.Validation<T>, expected: T): vo
   }
 }
 
-export function assertFailure(codec: t.Any, value: unknown, errors: Array<string>): void {
+export function assertFailure(codec: t.Any, value: unknown, expected: Array<string>): void {
   const result = codec.decode(value)
   if (result.isLeft()) {
-    assert.deepStrictEqual(PathReporter.report(result), errors)
+    assert.deepStrictEqual(PathReporter.report(result), expected)
     // test roundtrip
-    assert.deepStrictEqual(
-      codec.decode(value).mapLeft(errors => toErrors(toDecodeError(errors), codec)),
-      codec.decode(value)
-    )
+    codec.decode(value).mapLeft(errors => {
+      const decodeError = toDecodeError(errors)
+      // assert.deepStrictEqual(failure(decodeError), expected)
+      assert.deepStrictEqual(toErrors(decodeError, codec), result.value, 'roundtrip')
+    })
   } else {
     throw new Error(`${result} is not a left`)
   }
